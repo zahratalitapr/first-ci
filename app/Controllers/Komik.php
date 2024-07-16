@@ -98,4 +98,11 @@ class Komik extends BaseController
         session()->setFlashdata('pesan', 'Data Komik Berhasil Ditambahkan');
         return redirect()->to('/komik');
     }
+
+    public function delete($id)
+    {
+        $this->komikModel->delete($id);
+        session()->setFlashdata('pesan', 'Data Komik Berhasil Dihapus');
+        return redirect()->to('/komik');
+    }
 }
