@@ -42,8 +42,10 @@ class Komik extends BaseController
 
     public function create()
     {
+
         $data = [
-            'title' => 'Form Tambah Data Komik'
+            'title' => 'Form Tambah Data Komik',
+            'validation' => session()->getFlashdata('validation') ?? \Config\Services::validation()
         ];
 
         return view('komik/create', $data);
@@ -51,8 +53,38 @@ class Komik extends BaseController
 
     public function save()
     {
+
+
+        // membuat validasi input
+        $rules = [
+            'judul' => [
+                'rules' => 'required|is_unique[komik.judul]',
+                'errors' => [
+                    'required' => 'Judul komik harus diisi.',
+                    'is_unique' => 'Judul komik sudah ada.'
+                ]
+            ],
+            'penulis' => [
+                'rules' => 'required',
+                'errors' => [
+                    'required' => 'Penulis komik harus diisi.'
+                ]
+            ],
+            'penerbit' => [
+                'rules' => 'required',
+                'errors' => [
+                    'required' => 'Penerbit komik harus diisi.'
+                ]
+            ]
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->to('/komik/create')->withInput()->with('validation', \Config\Services::validation());
+        }
+
         // membuat url menjadi ramah user
         $slug = url_title($this->request->getVar('judul'), '-', true);
+
         // untuk mengambil get / post
         $this->komikModel->save([
             'judul' => $this->request->getVar('judul'),
