@@ -51,9 +51,11 @@
                 <div class="row mb-3">
                     <label for="sampul" class="col-sm-2 col-form-label">Sampul Buku</label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control <?= (isset($validation) && $validation->hasError('sampul')) ? 'is-invalid' : ''; ?>" id="sampul" name="sampul" value="<?= (old('sampul')) ? old('sampul') : $komik['sampul']; ?>">
-                        <div class="invalid-feedback">
-                            <?= isset($validation) ? $validation->getError('sampul') : ''; ?>
+                        <div class="input-group mb-3">
+                            <input type="file" class="form-control <?= ($validation->hasError('sampul')) ? 'is-invalid' : ''; ?>" id="sampul" name="sampul" value="<?= old('sampul'); ?>">
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('sampul'); ?>
+                            </div>
                         </div>
                     </div>
                 </div>

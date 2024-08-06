@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Models\KomikModel;
 
+
+
 class Komik extends BaseController
 {
     protected $komikModel;
@@ -14,6 +16,7 @@ class Komik extends BaseController
     public function index()
     {
         // $komik = $this->komikModel->findAll();
+
 
         $data = [
             'title' => 'Daftar Komik',
@@ -42,10 +45,11 @@ class Komik extends BaseController
 
     public function create()
     {
+        session();
 
         $data = [
             'title' => 'Form Tambah Data Komik',
-            'validation' => session()->getFlashdata('validation') ?? \Config\Services::validation()
+            'validation' => \Config\Services::validation()
         ];
 
         return view('komik/create', $data);
@@ -53,10 +57,7 @@ class Komik extends BaseController
 
     public function save()
     {
-
-
-        // membuat validasi input
-        $rules = [
+        if (!$this->validate([
             'judul' => [
                 'rules' => 'required|is_unique[komik.judul]',
                 'errors' => [
@@ -75,12 +76,29 @@ class Komik extends BaseController
                 'errors' => [
                     'required' => 'Penerbit komik harus diisi.'
                 ]
+            ],
+            'sampul' => [
+                'rules' => 'uploaded[sampul]|max_size[sampul,2048]|is_image[sampul]|mime_in[sampul,image/jpg,image/png,image/jpeg]',
+                'errors' => [
+                    'uploaded' => 'Sampul Komik harus diisi',
+                    'max_size' => 'Ukuran sampul terlalu besar',
+                    'is_image' => 'File anda bukan gambar',
+                    'mime_in' => 'File anda bukan gambar',
+                ]
             ]
-        ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->to('/komik/create')->withInput()->with('validation', \Config\Services::validation());
+        ])) {
+            return redirect()->back()->withInput();
         }
+
+        //ambil gambaer
+        $fileSampul = $this->request->getFile('sampul');
+
+        // generate nama sampul random
+        $namaSampul = $fileSampul->getRandomName();
+
+        //pindah gambar
+        $fileSampul->move('img');
+
 
         // membuat url menjadi ramah user
         $slug = url_title($this->request->getVar('judul'), '-', true);
@@ -91,7 +109,7 @@ class Komik extends BaseController
             'slug' => $slug,
             'penulis' => $this->request->getVar('penulis'),
             'penerbit' => $this->request->getVar('penerbit'),
-            'sampul' => $this->request->getVar('sampul')
+            'sampul' => $namaSampul
         ]);
 
         // membuat flash data (seperti sweet alert)
@@ -146,11 +164,11 @@ class Komik extends BaseController
                 'errors' => [
                     'required' => 'Penerbit komik harus diisi.'
                 ]
-            ]
+            ],
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->to('/komik/edit/' . $this->request->getVar('slug'))->withInput()->with('validation', \Config\Services::validation());
+            return redirect()->to('/komik/edit/' . $this->request->getVar('slug'))->withInput();
         }
         $slug = url_title($this->request->getVar('judul'), '-', true);
         $this->komikModel->save([
